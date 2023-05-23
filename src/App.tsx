@@ -15,7 +15,7 @@ function App() {
         <div>Ananas</div>
         <div>Apple</div>
         <div>Apple</div>
-        <Button background="secondary">Button</Button>
+        <Button background="">Button</Button>
       </Flex>
     </div>
   );

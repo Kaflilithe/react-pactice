@@ -5,22 +5,22 @@ import { DaisyColor } from "../../types/core/color.type";
 import { DaisySize } from "../../types/core/size.type";
 
 type Props = {
-  background?: DaisyColor;
+  color?: DaisyColor;
   size?: DaisySize;
   } & DetailedHTMLProps<HTMLAttributes<HTMLButtonElement>, HTMLButtonElement>;
 
 export const Button = (props: ParentComponent<Props>) =>{
-    const { background, size, className, ...others } = props;
+    const { color, size, className, ...others } = props;
 
   const classes = classNames("btn", {
     [className || ""]: !!className,
-    "btn-primary": background === "primary",
-    "btn-secondary": background === "secondary",
-    "btn-accent": background === "accent",
-    "btn-info": background === "info",
-    "btn-success": background === "success",
-    "btn-warning": background === "warning",
-    "btn-error": background === "error",
+    "btn-primary": color === "primary",
+    "btn-secondary": color === "secondary",
+    "btn-accent": color === "accent",
+    "btn-info": color === "info",
+    "btn-success": color === "success",
+    "btn-warning": color === "warning",
+    "btn-error": color === "error",
     "btn-lg": size === "lg",
     "btn-md": size === "md",
     "btn-sm": size === "sm",
