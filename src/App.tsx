@@ -15,7 +15,8 @@ function App() {
         <div>Ananas</div>
         <div>Apple</div>
         <div>Apple</div>
-        <Button background="">Button</Button>
+        <button disabled></button>
+        <Button color="accent" loading disabled>Button</Button>
       </Flex>
     </div>
   );

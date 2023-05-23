@@ -1,4 +1,4 @@
-import { DetailedHTMLProps, HTMLAttributes } from "react";
+import { ButtonHTMLAttributes, DetailedHTMLProps, HTMLAttributes } from "react";
 import { ParentComponent } from "../../types/core/base.type";
 import classNames from "classnames";
 import { DaisyColor } from "../../types/core/color.type";
@@ -7,13 +7,32 @@ import { DaisySize } from "../../types/core/size.type";
 type Props = {
   color?: DaisyColor;
   size?: DaisySize;
-  } & DetailedHTMLProps<HTMLAttributes<HTMLButtonElement>, HTMLButtonElement>;
+  loading?: boolean;
+  outline?: boolean;
+  wide?: boolean;
+  glass?: boolean;
+  link?: boolean;
+} & DetailedHTMLProps<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  HTMLButtonElement
+>;
 
-export const Button = (props: ParentComponent<Props>) =>{
-    const { color, size, className, ...others } = props;
+export const Button = (props: ParentComponent<Props>) => {
+  const {
+    className = '',
+    color,
+    size,
+    loading,
+    wide,
+    glass,
+    disabled,
+    outline,
+    link,
+    ...others
+  } = props;
 
   const classes = classNames("btn", {
-    [className || ""]: !!className,
+    [className]: !!className,
     "btn-primary": color === "primary",
     "btn-secondary": color === "secondary",
     "btn-accent": color === "accent",
@@ -25,6 +44,14 @@ export const Button = (props: ParentComponent<Props>) =>{
     "btn-md": size === "md",
     "btn-sm": size === "sm",
     "btn-xs": size === "xs",
+    "btn-wide": wide,
+    "btn-outline": outline,
+    "btn-active": !disabled,
+    "btn-disabled": disabled,
+    "btn-link": link,
+    loading: loading,
+    glass: glass,
   });
-    return <button className={classes} {...others} />;
-}
+
+  return <button className={classes} {...others} />;
+};
