@@ -4,6 +4,7 @@ import {
   DetailedHTMLProps,
   HTMLAttributes,
   ReactElement,
+  useEffect,
   useState,
 } from "react";
 import { DaisySize } from "../../types/core/size.type";
@@ -19,6 +20,7 @@ type Props = {
   justify?: JustifyItems;
   bordered?: boolean;
   lifted?: boolean;
+  activeTab?: number;
   onTabChange?: (index: number) => void;
 } & DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
 
@@ -33,6 +35,7 @@ export const Tabs = (props: ParentComponent<Props>) => {
     className,
     justify,
     onTabChange,
+    activeTab = 0,
     ...others
   } = props;
 
@@ -41,11 +44,15 @@ export const Tabs = (props: ParentComponent<Props>) => {
     "tabs-boxed": boxed,
   });
 
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(activeTab);
+  const query = new URLSearchParams();
+  useEffect(() => {
+    setSelectedTab(activeTab);
+  }, [activeTab]);
 
   function onChange(index: number) {
     setSelectedTab(index);
-    onTabChange?.(index)
+    onTabChange?.(index);
   }
 
   return (
