@@ -12,6 +12,8 @@ type Props = {
   wide?: boolean;
   glass?: boolean;
   link?: boolean;
+  ghost?: boolean;
+  active?: boolean;
 } & DetailedHTMLProps<
   ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
@@ -28,6 +30,8 @@ export const Button = (props: ParentComponent<Props>) => {
     disabled,
     outline,
     link,
+    ghost,
+    active,
     ...others
   } = props;
 
@@ -46,9 +50,10 @@ export const Button = (props: ParentComponent<Props>) => {
     "btn-xs": size === "xs",
     "btn-wide": wide,
     "btn-outline": outline,
-    "btn-active": !disabled,
+    "btn-active": active,
     "btn-disabled": disabled,
     "btn-link": link,
+    "btn-ghost": ghost,
     loading: loading,
     glass: glass,
   });

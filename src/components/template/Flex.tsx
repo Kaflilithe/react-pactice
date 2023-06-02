@@ -23,6 +23,7 @@ export const Flex = (props: ParentComponent<Props>) => {
     "justify-end": justify === "end",
     "justify-center": justify === "center",
     "justify-stretch": justify === "stretch",
+    "justify-between": justify === "between",
     "items-start": align === "start",
     "items-end": align === "end",
     "items-center": align === "center",
