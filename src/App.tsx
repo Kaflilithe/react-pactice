@@ -7,6 +7,7 @@ import "./index.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBoxesPacking,
+  faChevronLeft,
   faCircleQuestion,
   faDiagnoses,
   faFileLines,
@@ -17,7 +18,8 @@ import {
   faImage,
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
-import { JsxElement } from "typescript";
+
+const host = "http://127.0.0.1:3000/";
 
 interface File {
   name: string;
@@ -55,21 +57,26 @@ const FileToIcon = new Map<string, ReactNode>([
   ["docx", <FontAwesomeIcon icon={faFileWord} />],
   ["dmg", <FontAwesomeIcon icon={faBoxesPacking} />],
 ]);
+
 function App() {
-  const [tab, setTab] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
+  const [url, setUrl] = useState<string[]>([]);
 
   useEffect(() => {
-    getTabFromParams();
+    getPathFromParams();
     historyListener();
-    getFiles();
   }, []);
 
-  function getTabFromParams() {
+  useEffect(() => {
+    setSearchParams("path", url.join(","));
+    getFiles(url.join(","));
+  }, [url]);
+
+  function getPathFromParams() {
     const url = new URL(window.location.href);
-    const tab = url.searchParams.get("tab");
-    if (tab) {
-      setTab(Number(tab));
+    const path = url.searchParams.get("path");
+    if (path) {
+      setUrl(path.split(","));
     }
   }
 
@@ -81,15 +88,24 @@ function App() {
 
   function historyListener() {
     window.addEventListener("popstate", (e) => {
-      getTabFromParams();
+      getPathFromParams();
     });
   }
 
-  function getFiles(params?: string[]) {
-    fetch("http://127.0.0.1:3000/?path=Downloads")
-      .then((date) => date.json())
-      .then((date) => {
-        setFiles(date as Array<File>);
+  function getFiles(params?: string) {
+
+    fetch(`${host}?path=${!!params ? params : ""}`)
+      .then((data) => data.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setFiles(data.filter((f) => !f.hidden) as Array<File>);
+        } else {
+          throw new Error("файлы не пришли");
+        }
+      })
+      .catch((e) => {
+        setFiles([]);
+        console.error(e);
       });
   }
 
@@ -126,18 +142,47 @@ function App() {
   }
 
   return (
-    <div className="p-1">
+    <div className="p-1 w-full max-w-lg m-auto">
+      <header>
+      <Flex
+        orientation="row"
+        className="w-full"
+        align="center"
+      >
+        <Button
+          size="xs"
+          ghost
+          circle
+          disabled={!url.length}
+          onClick={() => {
+            setUrl(url.slice(0, -1));
+          }}
+        >
+          <FontAwesomeIcon icon={faChevronLeft} />
+        </Button>
+        <p className="truncate" title={url.join("/")}>{url.join("/")}</p>
+        </Flex>
+      </header>
+
       <Flex
         orientation="column"
-        className="w-full max-w-lg m-auto "
+        className="w-full"
         justify="center"
         align="center"
       >
         {files
-          .filter((f) => !f.hidden)
           .sort((a, b) => +b.isDir - +a.isDir)
           .map((item) => (
-            <Button className="w-full text-left normal-case" ghost>
+            <Button
+              onClick={() => {
+                if (item.isDir) {
+                  setUrl([...url, item.name]);
+                }
+              }}
+              key={item.name}
+              className="w-full text-left normal-case"
+              ghost
+            >
               <Flex
                 orientation="row"
                 className="w-full p-1"
@@ -151,13 +196,34 @@ function App() {
                       {item.name}
                     </p>
                   </Flex>
-                  <span className="opacity-60">{convertDate(item.info.modTime)}</span>
+                  <span className="opacity-60">
+                    {convertDate(item.info.modTime)}
+                  </span>
                 </Flex>
 
                 {!item.isDir && <p>{convertSize(item.info.size)}</p>}
               </Flex>
             </Button>
           ))}
+
+        {!files.length && (
+          <div>
+            <div className="alert alert-warning">
+              <Button
+                size="xs"
+                ghost
+                circle
+                disabled={!url.length}
+                onClick={() => {
+                  setUrl(url.slice(0, -1));
+                }}
+              >
+                <FontAwesomeIcon icon={faChevronLeft} />
+              </Button>
+              <span>Файлов нет </span>
+            </div>
+          </div>
+        )}
       </Flex>
     </div>
   );
