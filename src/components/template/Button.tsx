@@ -14,6 +14,7 @@ type Props = {
   link?: boolean;
   ghost?: boolean;
   active?: boolean;
+  circle?: boolean;
 } & DetailedHTMLProps<
   ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
@@ -32,6 +33,7 @@ export const Button = (props: ParentComponent<Props>) => {
     link,
     ghost,
     active,
+    circle,
     ...others
   } = props;
 
@@ -54,6 +56,7 @@ export const Button = (props: ParentComponent<Props>) => {
     "btn-disabled": disabled,
     "btn-link": link,
     "btn-ghost": ghost,
+    "btn-circle": circle,
     loading: loading,
     glass: glass,
   });
