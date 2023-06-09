@@ -26,6 +26,7 @@ export const Modal = (props: ParentComponent<Props>) => {
 
   return (
     <div className={classes} {...others}>
+      <div className="modal-box">
       <button
         onClick={() => close()}
         className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -33,6 +34,7 @@ export const Modal = (props: ParentComponent<Props>) => {
         ✕
       </button>
       {children}
+      </div>
     </div>
   );
 };
