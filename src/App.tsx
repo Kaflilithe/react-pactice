@@ -59,26 +59,35 @@ const FileToIcon = new Map<string, ReactNode>([
   ["dmg", <FontAwesomeIcon icon={faBoxesPacking} />],
 ]);
 
+type AppState = {
+  files: DirFile[];
+  url: string[];
+  media?: File;
+  modal: boolean;
+};
+
 function App() {
-  const [files, setFiles] = useState<DirFile[]>([]);
-  const [url, setUrl] = useState<string[]>([]);
-  const [media, setMedia] = useState<File>();
-  const [modal, setModal] = useState(false);
+  const [state, setState] = useState<AppState>({
+    files: [],
+    url: [],
+    modal: false,
+  });
+
   useEffect(() => {
     getPathFromParams();
     historyListener();
   }, []);
 
   useEffect(() => {
-    setSearchParams("path", url.join(","));
-    getFiles(url.join(","));
-  }, [url]);
+    setSearchParams("path", state.url.join(","));
+    getFiles(state.url.join(","));
+  }, [state.url]);
 
   function getPathFromParams() {
     const url = new URL(window.location.href);
     const path = url.searchParams.get("path");
     if (path) {
-      setUrl(path.split(","));
+      setState((state) => ({ ...state, url: path.split(",") }));
     }
   }
 
@@ -99,13 +108,13 @@ function App() {
       .then((data) => data.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setFiles(data.filter((f) => !f.hidden) as Array<DirFile>);
+          setState(state=>({...state, files:data.filter((f) => !f.hidden) as Array<DirFile>}));
         } else {
           throw new Error("файлы не пришли");
         }
       })
       .catch((e) => {
-        setFiles([]);
+        setState(state=>({...state,files:[]}));
         console.error(e);
       });
   }
@@ -114,11 +123,26 @@ function App() {
       .then((data) => data.blob())
       .then((blob) => {
         const f = new File([blob], params, { type: blob.type });
-        setMedia(f);
-        setModal(true);
+        setState((state) => ({
+          ...state,
+          media: f,
+        }));
+        openModal();
       });
   }
-  function openModal() {}
+
+  function openModal() {
+    setState((state) => ({
+      ...state,
+      modal: true,
+    }));
+  }
+  function closeModal() {
+    setState((state) => ({
+      ...state,
+      modal: false,
+    }));
+  }
   function convertSize(size: number) {
     if (String(size).length > 9) {
       return (size / 1_000_000_000).toFixed(1) + "гб";
@@ -139,6 +163,7 @@ function App() {
     const day = d.getDate();
     return `${day} ${month}, ${year}`;
   }
+
   function checkPermission(params: string, isDir: boolean) {
     if (isDir) {
       return <FontAwesomeIcon icon={faFolder} />;
@@ -149,6 +174,7 @@ function App() {
       FileToIcon.get(extension) || <FontAwesomeIcon icon={faCircleQuestion} />
     );
   }
+
   return (
     <div className="p-1 w-full max-w-lg m-auto">
       <header>
@@ -157,23 +183,22 @@ function App() {
             size="xs"
             ghost
             circle
-            disabled={!url.length}
+            disabled={!state.url.length}
             onClick={() => {
-              setUrl(url.slice(0, -1));
+              setState(state=>({...state, url:state.url.slice(0, -1)}))
             }}
           >
             <FontAwesomeIcon icon={faChevronLeft} />
           </Button>
-          <p className="truncate" title={url.join("/")}>
-            {url.join("/")}
+          <p className="truncate" title={state.url.join("/")}>
+            {state.url.join("/")}
           </p>
         </Flex>
       </header>
-     
-        <Modal close={() => setModal(false)} open={modal}>
-          {media && <Media file={media} />}
-        </Modal>
-  
+
+      <Modal position="bottom" close={() => closeModal()} open={state.modal}>
+        {state.media && <Media file={state.media} />}
+      </Modal>
 
       <Flex
         orientation="column"
@@ -181,15 +206,15 @@ function App() {
         justify="center"
         align="center"
       >
-        {files
+        {state.files
           .sort((a, b) => +b.isDir - +a.isDir)
           .map((item) => (
             <Button
               onClick={() => {
                 if (item.isDir) {
-                  setUrl([...url, item.name]);
+                  setState(state=>({...state,url:[...state.url, item.name]}))
                 } else {
-                  loadFile(url.join("/") + `/${item.name}`);
+                  loadFile(state.url.join("/") + `/${item.name}`);
                 }
               }}
               key={item.name}
@@ -219,16 +244,16 @@ function App() {
             </Button>
           ))}
 
-        {!files.length && (
+        {!state.files.length && (
           <div>
             <div className="alert alert-warning">
               <Button
                 size="xs"
                 ghost
                 circle
-                disabled={!url.length}
+                disabled={!state.url.length}
                 onClick={() => {
-                  setUrl(url.slice(0, -1));
+                  setState(state=>({...state,url:state.url.slice(0, -1)}))
                 }}
               >
                 <FontAwesomeIcon icon={faChevronLeft} />
