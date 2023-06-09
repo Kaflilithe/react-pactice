@@ -1,15 +1,12 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Button } from "./components/template/Button";
 import { Flex } from "./components/template/Flex";
-import { Tab } from "./components/template/Tab";
-import { Tabs } from "./components/template/Tabs";
 import "./index.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBoxesPacking,
   faChevronLeft,
   faCircleQuestion,
-  faDiagnoses,
   faFileLines,
   faFileWord,
   faFileZipper,
@@ -18,10 +15,13 @@ import {
   faImage,
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
+import { ParentComponent } from "./types/core/base.type";
+import { Media } from "./components/Media";
+import { Modal } from "./components/template/Modal";
 
 const host = "http://127.0.0.1:3000/";
 
-interface File {
+interface DirFile {
   name: string;
   isDir: boolean;
   hidden: boolean;
@@ -49,6 +49,7 @@ const FileToIcon = new Map<string, ReactNode>([
   ["jpg", <FontAwesomeIcon icon={faImage} />],
   ["png", <FontAwesomeIcon icon={faImage} />],
   ["svg", <FontAwesomeIcon icon={faImage} />],
+  ["webp", <FontAwesomeIcon icon={faImage} />],
   ["mp3", <FontAwesomeIcon icon={faHeadphones} />],
   ["mp4", <FontAwesomeIcon icon={faVideo} />],
   ["zip", <FontAwesomeIcon icon={faFileZipper} />],
@@ -59,9 +60,10 @@ const FileToIcon = new Map<string, ReactNode>([
 ]);
 
 function App() {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<DirFile[]>([]);
   const [url, setUrl] = useState<string[]>([]);
-
+  const [media, setMedia] = useState<File>();
+  const [modal, setModal] = useState(false);
   useEffect(() => {
     getPathFromParams();
     historyListener();
@@ -93,12 +95,11 @@ function App() {
   }
 
   function getFiles(params?: string) {
-
     fetch(`${host}?path=${!!params ? params : ""}`)
       .then((data) => data.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setFiles(data.filter((f) => !f.hidden) as Array<File>);
+          setFiles(data.filter((f) => !f.hidden) as Array<DirFile>);
         } else {
           throw new Error("файлы не пришли");
         }
@@ -108,7 +109,16 @@ function App() {
         console.error(e);
       });
   }
-
+  function loadFile(params: string) {
+    fetch(`${host}static/${!!params ? params : ""}`)
+      .then((data) => data.blob())
+      .then((blob) => {
+        const f = new File([blob], params, { type: blob.type });
+        setMedia(f);
+        setModal(true);
+      });
+  }
+  function openModal() {}
   function convertSize(size: number) {
     if (String(size).length > 9) {
       return (size / 1_000_000_000).toFixed(1) + "гб";
@@ -129,7 +139,6 @@ function App() {
     const day = d.getDate();
     return `${day} ${month}, ${year}`;
   }
-
   function checkPermission(params: string, isDir: boolean) {
     if (isDir) {
       return <FontAwesomeIcon icon={faFolder} />;
@@ -140,29 +149,31 @@ function App() {
       FileToIcon.get(extension) || <FontAwesomeIcon icon={faCircleQuestion} />
     );
   }
-
   return (
     <div className="p-1 w-full max-w-lg m-auto">
       <header>
-      <Flex
-        orientation="row"
-        className="w-full"
-        align="center"
-      >
-        <Button
-          size="xs"
-          ghost
-          circle
-          disabled={!url.length}
-          onClick={() => {
-            setUrl(url.slice(0, -1));
-          }}
-        >
-          <FontAwesomeIcon icon={faChevronLeft} />
-        </Button>
-        <p className="truncate" title={url.join("/")}>{url.join("/")}</p>
+        <Flex orientation="row" className="w-full" align="center">
+          <Button
+            size="xs"
+            ghost
+            circle
+            disabled={!url.length}
+            onClick={() => {
+              setUrl(url.slice(0, -1));
+            }}
+          >
+            <FontAwesomeIcon icon={faChevronLeft} />
+          </Button>
+          <p className="truncate" title={url.join("/")}>
+            {url.join("/")}
+          </p>
         </Flex>
       </header>
+     
+        <Modal close={() => setModal(false)} open={modal}>
+          {media && <Media file={media} />}
+        </Modal>
+  
 
       <Flex
         orientation="column"
@@ -177,6 +188,8 @@ function App() {
               onClick={() => {
                 if (item.isDir) {
                   setUrl([...url, item.name]);
+                } else {
+                  loadFile(url.join("/") + `/${item.name}`);
                 }
               }}
               key={item.name}
